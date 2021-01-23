@@ -1,3 +1,4 @@
+import { IsEmail, Length } from "class-validator";
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -19,14 +20,20 @@ export class User extends BaseEntity {
   id: number;
 
   @Index()
+  @IsEmail()
   @Column({ unique: true })
   email: string;
 
   @Index()
+  //最小3　最大255
+  @Length(3, 255, {
+    message: "4文字以上入力してください",
+  })
   @Column({ unique: true })
   username: string;
 
   @Column()
+  @Length(6, 255)
   password: string;
 
   @CreateDateColumn()
