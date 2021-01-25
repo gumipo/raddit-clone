@@ -1,44 +1,48 @@
 import { IsEmail, Length } from "class-validator";
 import {
-  Entity,
-  PrimaryGeneratedColumn,
+  Entity as TOEntity,
   Column,
-  BaseEntity,
   Index,
-  CreateDateColumn,
-  UpdateDateColumn,
+  BeforeInsert,
+  OneToMany,
 } from "typeorm";
+import bcrypt from "bcrypt";
+import { Exclude } from "class-transformer";
+import Entity from "./Entity";
+import Post from "./Post";
 
-@Entity("users")
-export class User extends BaseEntity {
+@TOEntity("users")
+export default class User extends Entity {
   constructor(user: Partial<User>) {
     super();
     Object.assign(this, user);
   }
 
-  @PrimaryGeneratedColumn()
-  id: number;
-
+  //Email
   @Index()
   @IsEmail()
   @Column({ unique: true })
   email: string;
 
+  //ユーザーネーム
   @Index()
-  //最小3　最大255
   @Length(3, 255, {
-    message: "4文字以上入力してください",
+    message: "4文字以上入力してください", //最小3　最大255
   })
   @Column({ unique: true })
   username: string;
 
+  //パスワード
+  @Exclude()
   @Column()
   @Length(6, 255)
   password: string;
 
-  @CreateDateColumn()
-  createAt: Date;
+  @OneToMany(() => Post, (post) => post.user)
+  posts: Post[];
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+  @BeforeInsert()
+  async hashPassword() {
+    this.password = await bcrypt.hash(this.password, 6);
+  }
 }
