@@ -1,9 +1,10 @@
-import { Response, Request, Router } from "express";
-import User from "../entities/User";
-import auth from "../middleware/auth";
+import { Request, Response, Router } from "express";
 import { isEmpty } from "class-validator";
 import { getRepository } from "typeorm";
+
+import User from "../entities/User";
 import Sub from "../entities/Sub";
+import auth from "../middleware/auth";
 
 const createSub = async (req: Request, res: Response) => {
   const { name, title, description } = req.body;
@@ -12,17 +13,16 @@ const createSub = async (req: Request, res: Response) => {
 
   try {
     let errors: any = {};
-    if (isEmpty(name)) errors.name = "名前の入力がない";
-    if (isEmpty(title)) errors.name = "タイトルの入力がない";
+    if (isEmpty(name)) errors.name = "nameが見入力です。";
+    if (isEmpty(title)) errors.title = "Titleが未入力です。";
 
-    //存在しているか
     const sub = await getRepository(Sub)
       .createQueryBuilder("sub")
       .where("lower(sub.name) = :name", { name: name.toLowerCase() })
       .getOne();
 
-    //存在していたらエラー
-    if (sub) errors.name = "すでに存在しています";
+    if (sub) errors.name = "Sub exists already";
+
     if (Object.keys(errors).length > 0) {
       throw errors;
     }
@@ -31,13 +31,13 @@ const createSub = async (req: Request, res: Response) => {
   }
 
   try {
-    //Subを登録
     const sub = new Sub({ name, description, title, user });
     await sub.save();
+
     return res.json(sub);
   } catch (err) {
     console.log(err);
-    return res.status(500).json({ error: "失敗しました" });
+    return res.status(500).json({ error: "投稿に失敗しました。" });
   }
 };
 

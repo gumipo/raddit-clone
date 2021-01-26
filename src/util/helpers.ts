@@ -1,3 +1,4 @@
+// https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
 export function makeId(length: number): string {
   let result = "";
   const characters =
@@ -9,6 +10,7 @@ export function makeId(length: number): string {
   return result;
 }
 
+// https://gist.github.com/codeguy/6684588#gistcomment-2759673
 export function slugify(str: string): string {
   str = str.trim();
   str = str.toLowerCase();

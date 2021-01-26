@@ -36,3 +36,6 @@ typeorm entity:create --name ファイル名
 
 //マイグレーション
 npm run typeorm migration:generate -- --name create-users-table
+
+//typeErr 確認
+tsc --noEmit

@@ -2,15 +2,17 @@ import {
   Entity as TOEntity,
   Column,
   Index,
+  BeforeInsert,
   ManyToOne,
   JoinColumn,
-  BeforeInsert,
+  OneToMany,
 } from "typeorm";
-import { makeId, slugify } from "../util/helpers";
 
 import Entity from "./Entity";
-import Sub from "./Sub";
 import User from "./User";
+import { makeId, slugify } from "../util/helpers";
+import Sub from "./Sub";
+import Comment from "./Comment";
 
 @TOEntity("posts")
 export default class Post extends Entity {
@@ -21,7 +23,7 @@ export default class Post extends Entity {
 
   @Index()
   @Column()
-  identifier: string; //7 character id 識別
+  identifier: string; // 7 Character Id
 
   @Column()
   title: string;
@@ -36,7 +38,6 @@ export default class Post extends Entity {
   @Column()
   subName: string;
 
-  //投稿者の情報
   @ManyToOne(() => User, (user) => user.posts)
   @JoinColumn({ name: "username", referencedColumnName: "username" })
   user: User;
@@ -44,6 +45,9 @@ export default class Post extends Entity {
   @ManyToOne(() => Sub, (sub) => sub.posts)
   @JoinColumn({ name: "subName", referencedColumnName: "name" })
   sub: Sub;
+
+  @OneToMany(() => Comment, (comment) => comment.post)
+  comments: Comment[];
 
   @BeforeInsert()
   makeIdAndSlug() {

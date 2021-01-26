@@ -1,42 +1,39 @@
 import { Request, Response, Router } from "express";
-import User from "../entities/User";
 import { isEmpty, validate } from "class-validator";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cookie from "cookie";
+
+import User from "../entities/User";
 import auth from "../middleware/auth";
 
-//新規登録
 const register = async (req: Request, res: Response) => {
   const { email, username, password } = req.body;
+
   try {
-    //TODO varidate data
+    // Validate data
     let errors: any = {};
 
-    //存在しているか確認する
+    //emailとusernameを検索
     const emailUser = await User.findOne({ email });
     const usernameUser = await User.findOne({ username });
 
-    //存在していたらエラー文を追加
-    if (emailUser) errors.email = "Email is already taken";
-    if (usernameUser) errors.username = "Username is already taken";
+    if (emailUser) errors.email = "このEmailはすでに存在しています";
+    if (usernameUser) errors.username = "このユーザー名はすでに存在しています";
 
-    // errosの数あればStatus400を返す
     if (Object.keys(errors).length > 0) {
       return res.status(400).json(errors);
     }
 
-    //TODO create the User
-    //新しくユーザーを作成
+    //ユーザー登録
     const user = new User({ email, username, password });
-    //バリデーションをかける
+
     errors = await validate(user);
     if (errors.length > 0) return res.status(400).json({ errors });
 
-    //dbに登録
     await user.save();
 
-    //TODO Return the User
+    // Return the user
     return res.json(user);
   } catch (err) {
     console.log(err);
@@ -44,34 +41,31 @@ const register = async (req: Request, res: Response) => {
   }
 };
 
-//ログイン時
+//ログイン
 const login = async (req: Request, res: Response) => {
   const { username, password } = req.body;
+
   try {
     let errors: any = {};
 
-    //usernameが空だったら
-    if (isEmpty(username)) errors.username = "ユーザーネームの入力が空です";
-    if (isEmpty(password)) errors.password = "パスワードの入力が空です";
-
+    if (isEmpty(username)) errors.username = "ユーザーネームが未入力です";
+    if (isEmpty(password)) errors.password = "パスワードが未入力です";
     if (Object.keys(errors).length > 0) {
       return res.status(400).json(errors);
     }
 
-    //usernameが存在しているか
     const user = await User.findOne({ username });
-    if (!user)
-      return res.status(404).json({ error: "アカウント名が存在しません" });
 
-    //passwordがあっているか
+    if (!user)
+      return res.status(404).json({ error: "ユーザーが見つかりません" });
+
     const passwordMatches = await bcrypt.compare(password, user.password);
+
     if (!passwordMatches) {
-      return res.status(403).json({
-        password: "パスワードが間違っています",
-      });
+      return res.status(401).json({ password: "パスワードが間違っています。" });
     }
 
-    const token = jwt.sign({ username }, process.env.JWT_SECRET);
+    const token = jwt.sign({ username }, process.env.JWT_SECRET!);
 
     res.set(
       "Set-Cookie",
@@ -85,15 +79,16 @@ const login = async (req: Request, res: Response) => {
     );
 
     return res.json(user);
-  } catch (err) {}
+  } catch (err) {
+    console.log(err);
+    return res.json({ error: "失敗しました。" });
+  }
 };
 
-//ログイン情報を取得
-const me = async (_: Request, res: Response) => {
+const me = (_: Request, res: Response) => {
   return res.json(res.locals.user);
 };
 
-//ログアウト
 const logout = (_: Request, res: Response) => {
   res.set(
     "Set-Cookie",
@@ -105,13 +100,14 @@ const logout = (_: Request, res: Response) => {
       path: "/",
     })
   );
+
   return res.status(200).json({ success: true });
 };
 
 const router = Router();
 router.post("/register", register);
 router.post("/login", login);
-router.post("/me", auth, me);
-router.post("/logout", auth, logout);
+router.get("/me", auth, me);
+router.get("/logout", auth, logout);
 
 export default router;

@@ -8,6 +8,7 @@ import {
 } from "typeorm";
 import bcrypt from "bcrypt";
 import { Exclude } from "class-transformer";
+
 import Entity from "./Entity";
 import Post from "./Post";
 
@@ -18,21 +19,16 @@ export default class User extends Entity {
     Object.assign(this, user);
   }
 
-  //Email
   @Index()
   @IsEmail()
   @Column({ unique: true })
   email: string;
 
-  //ユーザーネーム
   @Index()
-  @Length(3, 255, {
-    message: "4文字以上入力してください", //最小3　最大255
-  })
+  @Length(3, 255, { message: "ユーザー名を四文字以上入力してください" })
   @Column({ unique: true })
   username: string;
 
-  //パスワード
   @Exclude()
   @Column()
   @Length(6, 255)
