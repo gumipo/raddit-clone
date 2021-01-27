@@ -10,7 +10,7 @@ npm i ts-node@latest @types/node@latest typescript@latest
 
 npm install express
 
-//タイプスクリプト
+//Typescript
 npm install -D @types/express mogan @types/mogan
 
 //DB のアップデートを常に監視する
