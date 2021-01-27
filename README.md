@@ -39,3 +39,7 @@ npm run typeorm migration:generate -- --name create-users-table
 
 //typeErr 確認
 tsc --noEmit
+
+//Client とドメインが違う場合許可する
+npm install cors
+npm install -D @types/cors

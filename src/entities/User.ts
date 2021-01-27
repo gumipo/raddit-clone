@@ -20,18 +20,19 @@ export default class User extends Entity {
   }
 
   @Index()
-  @IsEmail()
+  @IsEmail(undefined, { message: "このアドレスは有効ではありません" })
+  @Length(1, 255, { message: "Emailが見入力です" })
   @Column({ unique: true })
   email: string;
 
   @Index()
-  @Length(3, 255, { message: "ユーザー名を四文字以上入力してください" })
+  @Length(3, 255, { message: "ユーザー名を4文字以上入力してください" })
   @Column({ unique: true })
   username: string;
 
   @Exclude()
   @Column()
-  @Length(6, 255)
+  @Length(6, 255, { message: "パスワードを7文字以上入力してください" })
   password: string;
 
   @OneToMany(() => Post, (post) => post.user)

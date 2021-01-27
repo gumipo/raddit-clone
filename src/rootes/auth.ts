@@ -7,6 +7,14 @@ import cookie from "cookie";
 import User from "../entities/User";
 import auth from "../middleware/auth";
 
+const mapErrors = (errors: Object[]) => {
+  return errors.reduce((prev: any, err: any) => {
+    prev[err.property] = Object.entries(err.constraints)[0][1];
+    return prev;
+  }, {});
+};
+
+//登録
 const register = async (req: Request, res: Response) => {
   const { email, username, password } = req.body;
 
@@ -18,6 +26,7 @@ const register = async (req: Request, res: Response) => {
     const emailUser = await User.findOne({ email });
     const usernameUser = await User.findOne({ username });
 
+    //Emailやusernameが存在していたら
     if (emailUser) errors.email = "このEmailはすでに存在しています";
     if (usernameUser) errors.username = "このユーザー名はすでに存在しています";
 
@@ -28,9 +37,11 @@ const register = async (req: Request, res: Response) => {
     //ユーザー登録
     const user = new User({ email, username, password });
 
+    //文字数バリデーション
     errors = await validate(user);
-    if (errors.length > 0) return res.status(400).json({ errors });
-
+    if (errors.length > 0) {
+      return res.status(400).json(mapErrors(errors));
+    }
     await user.save();
 
     // Return the user
@@ -57,7 +68,7 @@ const login = async (req: Request, res: Response) => {
     const user = await User.findOne({ username });
 
     if (!user)
-      return res.status(404).json({ error: "ユーザーが見つかりません" });
+      return res.status(404).json({ username: "ユーザーが見つかりません" });
 
     const passwordMatches = await bcrypt.compare(password, user.password);
 
